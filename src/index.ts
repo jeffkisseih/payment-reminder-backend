@@ -1,7 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import path from "path";
 import { connectDB } from "./config/db";
 import reminderRoutes from "./routes/reminderRoutes";
 import authRoutes from "./routes/authRoutes";
@@ -14,8 +13,9 @@ const app = express();
 app.use(express.json());
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000"
+  "http://localhost:5173", // Vite local dev
+  "http://localhost:3000", // Next.js local dev
+  "https://your-frontend-url.vercel.app", // ✅ Replace with Vercel frontend URL
 ];
 
 app.use(
@@ -30,15 +30,13 @@ app.use("/api/reminders", reminderRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/payments", paymentRoutes);
 
-// 👉 Serve frontend build in production
-const publicPath = path.join(__dirname, "../public");
-app.use(express.static(publicPath));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(publicPath, "index.html"));
+// Health check route (optional but helpful)
+app.get("/", (req, res) => {
+  res.json({ message: "Backend API is running 🚀" });
 });
 
 // Start server
 const PORT = process.env.PORT || 8080;
 connectDB();
-app.listen(PORT, () => console.log(`🚀 Backend + Frontend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+
