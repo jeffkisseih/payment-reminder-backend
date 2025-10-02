@@ -15,7 +15,7 @@ app.use(express.json());
 const allowedOrigins = [
   "http://localhost:5173", // Vite local dev
   "http://localhost:3000", // Next.js local dev
-  "https://your-frontend-url.vercel.app", // ✅ Replace with Vercel frontend URL
+  "https://payment-reminder-frontend.vercel.app", // ✅ Replace with Vercel frontend URL
 ];
 
 app.use(
