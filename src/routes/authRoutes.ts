@@ -30,29 +30,36 @@ router.post("/signup", async (req, res) => {
 // Login
 router.post("/login", async (req, res) => {
   try {
+    console.log("🟢 Login request body:", req.body);
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
 
+    if (!email || !password) {
+      console.error("❌ Missing email or password in request body");
+      return res.status(400).json({ error: "Missing credentials" });
+    }
+
+    const user = await User.findOne({ email });
     if (!user) {
+      console.error("❌ User not found for email:", email);
       return res.status(400).json({ error: "Invalid credentials" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.error("❌ Password mismatch for:", email);
       return res.status(400).json({ error: "Invalid credentials" });
     }
 
-    // ✅ Fix: ensure JWT_SECRET is always a string
     const jwtSecret = process.env.JWT_SECRET || "dev_secret_key";
+    const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: "1d" });
 
-    const token = jwt.sign({ id: user._id }, jwtSecret, {
-      expiresIn: "1d",
-    });
-
+    console.log("✅ Login successful for:", email);
     res.status(200).json({ token });
   } catch (err) {
+    console.error("🔥 Login error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 export default router;

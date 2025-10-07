@@ -12,6 +12,7 @@ const app = express();
 
 // ✅ Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const allowedOrigins = [
   "http://localhost:5173", // Vite local dev
