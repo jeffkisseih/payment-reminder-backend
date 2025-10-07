@@ -14,24 +14,21 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Allowed Origins (Update these to match your frontend URLs)
+// ✅ Allowed origins
 const allowedOrigins = [
-  "http://localhost:5173", // Vite local dev
-  "http://localhost:3000", // Next.js local dev
+  "http://localhost:5173",
+  "http://localhost:3000",
   "https://payment-reminder-frontend.vercel.app",
   "https://payment-reminder-frontend-git-main-jeffkisseihs-projects.vercel.app",
   "https://payment-reminder-frontend-l800pj1ck-jeffkisseihs-projects.vercel.app",
-  // Deployed frontend
-
 ];
 
-// ✅ Dynamic CORS Configuration
+// ✅ Dynamic CORS
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
+      if (!origin || allowedOrigins.includes(origin)) callback(null, true);
+      else {
         console.warn("🚫 Blocked by CORS:", origin);
         callback(new Error("Not allowed by CORS"));
       }
@@ -40,53 +37,58 @@ app.use(
   })
 );
 
-// ✅ API Routes
+// ✅ Routes
 app.use("/api/reminders", reminderRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/payments", paymentRoutes);
 
-// ✅ Health check route
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "✅ Backend API is running smoothly." });
+// ✅ Debug & health-check routes
+app.get("/", (_, res) => res.status(200).json({ message: "✅ Backend API is running smoothly." }));
+
+app.get("/api/test", async (_, res) => {
+  try {
+    const dbState = mongoose.connection.readyState;
+    const jwtSecret = process.env.JWT_SECRET ? "✅ Present" : "❌ Missing";
+    res.json({
+      status: "ok",
+      dbState,
+      jwtSecret,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Test route failed", details: err });
+  }
 });
 
-// ✅ MongoDB + Server Startup
+// ✅ MongoDB connection + startup
 async function startServer() {
   try {
     await connectDB();
     console.log("✅ MongoDB connected successfully");
 
     const PORT = process.env.PORT || 8080;
-    const server = app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
+    const server = app.listen(PORT, () =>
+      console.log(`🚀 Server running on port ${PORT}`)
+    );
 
-    // ✅ Graceful shutdown for Railway / Vercel
     process.on("SIGTERM", () => {
-      console.log("🛑 SIGTERM received. Shutting down gracefully...");
+      console.log("🛑 SIGTERM received. Shutting down...");
       server.close(() => {
         mongoose.connection.close();
-        console.log("💤 MongoDB connection closed");
+        console.log("💤 MongoDB closed.");
         process.exit(0);
       });
     });
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("❌ Failed to start server:", error.message);
-    } else {
-      console.error("❌ Unknown error while starting server:", error);
-    }
-
-    // Retry after 5 seconds
-    console.log("⏳ Retrying MongoDB connection in 5s...");
+    console.error("❌ Failed to start server:", error);
+    console.log("⏳ Retrying in 5s...");
     setTimeout(startServer, 5000);
   }
 }
 
 startServer();
 
-// ✅ Global error handlers (catch unhandled issues)
-process.on("unhandledRejection", (reason, promise) => {
+// ✅ Global error handlers
+process.on("unhandledRejection", (reason) => {
   console.error("🚨 Unhandled Rejection:", reason);
 });
 
