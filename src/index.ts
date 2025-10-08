@@ -2,10 +2,10 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
-import { connectDB } from "./config/db.js";
-import reminderRoutes from "./routes/reminderRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
-import paymentRoutes from "./routes/paymentRoutes.js";
+import { connectDB } from "./config/db";
+import reminderRoutes from "./routes/reminderRoutes";
+import authRoutes from "./routes/authRoutes";
+import paymentRoutes from "./routes/paymentRoutes";
 
 dotenv.config();
 const app = express();
